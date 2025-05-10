@@ -13,7 +13,15 @@ public class WarehouseController(IWarehouseService service) : ControllerBase
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
-        var idProductWarehouse = await service.AddProductToWarehouse(productWarehouse);
+        var idProductWarehouse = await service.AddProductToWarehouseAsync(productWarehouse);
+        return Created("", new{idProductWarehouse});
+    }
+    [HttpPost("procedure")]
+    public async Task<IActionResult> AddProductToWarehouseProcedure([FromBody] ProductWarehouseDTO productWarehouse)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        var idProductWarehouse = await service.AddProductToWarehouseProcedureAsync(productWarehouse);
         return Created("", new{idProductWarehouse});
     }
 }

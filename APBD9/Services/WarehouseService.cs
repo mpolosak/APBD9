@@ -1,4 +1,5 @@
-﻿using APBD9.DTOs;
+﻿using System.Data;
+using APBD9.DTOs;
 using APBD9.Exceptions;
 using Microsoft.Data.SqlClient;
 
@@ -7,7 +8,7 @@ namespace APBD9.Services;
 public class WarehouseService(IConfiguration configuration) : IWarehouseService
 {
     private readonly string _connectionString = configuration.GetConnectionString("DefaultConnection")??throw new ApplicationException("Connection string not found");
-    public async Task<int> AddProductToWarehouse(ProductWarehouseDTO productWarehouse)
+    public async Task<int> AddProductToWarehouseAsync(ProductWarehouseDTO productWarehouse)
     {
         await using var conn = new SqlConnection(_connectionString);
         await conn.OpenAsync();
@@ -57,6 +58,27 @@ public class WarehouseService(IConfiguration configuration) : IWarehouseService
         {
             transaction.Rollback();
             throw;
+        }
+    }
+
+    public async Task<int> AddProductToWarehouseProcedureAsync(ProductWarehouseDTO productWarehouse)
+    {
+        await using var conn = new SqlConnection(_connectionString);
+        await using var command = new SqlCommand("AddProductToWarehouse", conn);
+        await conn.OpenAsync();
+        command.CommandType = System.Data.CommandType.StoredProcedure;
+        command.Parameters.AddWithValue("@IdProduct", SqlDbType.Int).Value = productWarehouse.IdProduct;
+        command.Parameters.AddWithValue("@IdWarehouse", SqlDbType.Int).Value = productWarehouse.IdWarehouse;
+        command.Parameters.AddWithValue("@Amount", SqlDbType.Int).Value = productWarehouse.Amount;
+        command.Parameters.AddWithValue("@CreatedAt", SqlDbType.DateTime).Value = DateTime.Now;
+        try
+        {
+            var id = (decimal)await command.ExecuteScalarAsync();
+            return (int)id;
+        }
+        catch (SqlException sqlEx)
+        {
+            throw new BadRequestException(sqlEx.Message);
         }
     }
 }
