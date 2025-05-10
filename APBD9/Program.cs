@@ -1,3 +1,4 @@
+using APBD9.Middlewares;
 using APBD9.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,8 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 
 var app = builder.Build();
+
+app.UseMiddleware<ErrorHandlerMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
